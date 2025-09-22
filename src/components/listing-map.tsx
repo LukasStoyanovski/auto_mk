@@ -1,48 +1,9 @@
 // file: src/components/listing-map.tsx
 "use client";
 
-import dynamic from "next/dynamic";
-import { forwardRef, useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import type { Map as LeafletMap } from "leaflet";
-import type {
-  MapContainerProps,
-  TileLayerProps,
-  MarkerProps,
-} from "react-leaflet";
-
-const MapContainer = dynamic(
-  () =>
-    import("react-leaflet").then(({ MapContainer: LeafletMapContainer }) => {
-      const Wrapped = forwardRef<LeafletMap, MapContainerProps>((props, ref) => (
-        <LeafletMapContainer {...props} ref={ref} />
-      ));
-      Wrapped.displayName = "DynamicMapContainer";
-      return Wrapped;
-    }),
-  { ssr: false },
-) as ComponentType<MapContainerProps>;
-
-const TileLayer = dynamic<TileLayerProps>(
-  () =>
-    import("react-leaflet").then(({ TileLayer: LeafletTileLayer }) =>
-      function WrappedTileLayer(props: TileLayerProps) {
-        return <LeafletTileLayer {...props} />;
-      },
-    ),
-  { ssr: false },
-);
-
-const Marker = dynamic<MarkerProps>(
-  () =>
-    import("react-leaflet").then(({ Marker: LeafletMarker }) =>
-      function WrappedMarker(props: MarkerProps) {
-        return <LeafletMarker {...props} />;
-      },
-    ),
-  { ssr: false },
-);
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
@@ -54,12 +15,40 @@ const defaultIcon = new L.Icon({
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
+type LeafletComponents = {
+  MapContainer: typeof import("react-leaflet").MapContainer;
+  TileLayer: typeof import("react-leaflet").TileLayer;
+  Marker: typeof import("react-leaflet").Marker;
+};
+
 export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
   const [center, setCenter] = useState<[number, number]>([lat, lng]);
+  const [leaflet, setLeaflet] = useState<LeafletComponents | null>(null);
 
   useEffect(() => {
     setCenter([lat, lng]);
   }, [lat, lng]);
+
+  useEffect(() => {
+    let mounted = true;
+    import("react-leaflet").then((mod) => {
+      if (!mounted) return;
+      setLeaflet({
+        MapContainer: mod.MapContainer,
+        TileLayer: mod.TileLayer,
+        Marker: mod.Marker,
+      });
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!leaflet) {
+    return <div className="h-64 w-full overflow-hidden rounded border" />;
+  }
+
+  const { MapContainer, TileLayer, Marker } = leaflet;
 
   return (
     <div className="h-64 w-full overflow-hidden rounded border">
