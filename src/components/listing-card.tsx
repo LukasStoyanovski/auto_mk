@@ -1,5 +1,6 @@
 // file: src/components/listing-card.tsx
 import Link from "next/link";
+import Image from "next/image";
 
 type ListingItem = {
   id: string;
@@ -23,7 +24,7 @@ export default function ListingCard({ item, locale }: { item: ListingItem; local
     >
       <div className="aspect-[4/3] w-full overflow-hidden rounded-t-lg bg-gray-100">
         {item.primaryPhotoUrl ? (
-          <img src={item.primaryPhotoUrl} alt="" className="h-full w-full object-cover" />
+          <Image src={item.primaryPhotoUrl} alt="" width={400} height={300} className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full grid place-items-center text-gray-400 text-sm">No photo</div>
         )}

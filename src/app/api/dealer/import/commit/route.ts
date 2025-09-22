@@ -26,13 +26,13 @@ function toInt(input: unknown): number | undefined {
   if (!cleaned) return undefined;
   return parseInt(cleaned, 10);
 }
-function normFuel(v: any): string | undefined {
+function normFuel(v: unknown): string | undefined {
   if (!v) return undefined;
   const s = String(v).trim().toUpperCase();
   const map: Record<string, string> = { GASOLINE: "PETROL", BENZIN: "PETROL", BENZINE: "PETROL", NAFTA: "DIESEL" };
   return map[s] || s;
 }
-function normTrans(v: any): string | undefined {
+function normTrans(v: unknown): string | undefined {
   if (!v) return undefined;
   const s = String(v).trim().toUpperCase();
   const map: Record<string, string> = { AUTOMATIC: "AUTO", AUTOMATIK: "AUTO", MANUALNI: "MANUAL" };
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
   if (!file) return NextResponse.json({ error: "Missing file" }, { status: 400 });
 
   const csv = Buffer.from(await file.arrayBuffer()).toString("utf8");
-  const rows: any[] = parse(csv, {
+  const rows: Record<string, string>[] = parse(csv, {
     delimiter: [",",";","\t"],
     bom: true,
     columns: true,
@@ -100,8 +100,8 @@ export async function POST(req: Request) {
           model: d.model,
           year: d.year,
           mileageKm: d.mileageKm,
-          fuel: d.fuel as any,
-          transmission: d.transmission as any,
+          fuel: d.fuel as "PETROL" | "DIESEL" | "HYBRID" | "PHEV" | "EV" | "LPG" | "CNG",
+          transmission: d.transmission as "MANUAL" | "AUTO",
           euroStandard: "NA",
           condition: "USED",
         },

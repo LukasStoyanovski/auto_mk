@@ -29,7 +29,7 @@ export default function SignUpPage() {
       }
       // Auto sign-in
       await signIn("credentials", { email, password, callbackUrl: "/" });
-    } catch (err: any) {
+    } catch {
       setError("Unexpected error");
     } finally {
       setSubmitting(false);

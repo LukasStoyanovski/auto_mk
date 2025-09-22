@@ -1,6 +1,7 @@
 // file: src/app/[locale]/sell/upload-photo-client.tsx
 'use client';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useCallback} from 'react';
+import Image from 'next/image';
 
 type Photo = {id: string; url: string; key: string; isPrimary: boolean};
 
@@ -9,15 +10,15 @@ export default function UploadPhotoClient({listingId}: {listingId: string}) {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchPhotos() {
+  const fetchPhotos = useCallback(async () => {
     const res = await fetch(`/api/sell/photos?listingId=${listingId}`);
     const data = await res.json();
     if (res.ok) setPhotos(data.photos as Photo[]);
-  }
+  }, [listingId]);
 
   useEffect(() => {
     fetchPhotos();
-  }, [listingId]);
+  }, [listingId, fetchPhotos]);
 
   async function upload(files: FileList) {
     if (!files?.length) return;
@@ -87,7 +88,7 @@ export default function UploadPhotoClient({listingId}: {listingId: string}) {
         <ul className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
           {photos.map((p) => (
             <li key={p.id} className="border rounded p-2 bg-gray-50">
-              <img src={p.url} alt="" className="w-full h-40 object-cover rounded" />
+              <Image src={p.url} alt="" width={300} height={160} className="w-full h-40 object-cover rounded" />
               <div className="mt-2 flex items-center justify-between text-sm">
                 <button
                   onClick={() => setPrimary(p.id)}

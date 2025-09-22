@@ -49,14 +49,14 @@ export async function PATCH(req: Request) {
     await prisma.vehicle.update({
       where: { id: listing.vehicleId },
       data: {
-        category: data.category as any,
+        category: data.category as "CAR" | "MOTORCYCLE" | "VAN" | "TRUCK" | "BUS" | "AGRI" | "CONSTRUCTION" | "OTHER",
         make: data.make,
         model: data.model,
         year: data.year,
         mileageKm: data.mileageKm,
-        fuel: data.fuel as any,
-        transmission: data.transmission as any,
-        condition: data.condition as any,
+        fuel: data.fuel as "PETROL" | "DIESEL" | "HYBRID" | "PHEV" | "EV" | "LPG" | "CNG",
+        transmission: data.transmission as "MANUAL" | "AUTO",
+        condition: data.condition as "NEW" | "USED" | "DAMAGED",
       },
     });
 
