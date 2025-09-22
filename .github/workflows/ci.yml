@@ -13,7 +13,8 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        ports: ["5432:5432"]
+        ports:
+          - "5432:5432"
         env:
           POSTGRES_DB: automk
           POSTGRES_USER: automk
@@ -26,7 +27,8 @@ jobs:
 
       minio:
         image: bitnami/minio:latest
-        ports: ["9000:9000"]
+        ports:
+          - "9000:9000"
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
@@ -51,10 +53,9 @@ jobs:
       NEXTAUTH_SECRET: testsecret
       NEXTAUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      # i18n (not strictly required)
       NODE_ENV: test
 
-        steps:
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -62,30 +63,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: 'pnpm'
 
       - name: Enable pnpm via corepack
-        shell: bash
         run: |
           corepack enable
           corepack prepare pnpm@9 --activate
           pnpm -v
 
       - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client & migrate
+        env:
+          PGPASSWORD: automk
         run: |
           pnpx prisma generate
           pnpx prisma migrate deploy
-          psql "$DATABASE_URL" -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
+          psql -h localhost -U automk -d automk -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
 
-      - name: Create S3 bucket
+      - name: Make S3 bucket public (best-effort)
         run: |
-          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc && chmod +x mc
+          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+          chmod +x mc
           ./mc alias set local http://localhost:9000 minioadmin minioadmin
           ./mc mb -p local/$S3_BUCKET || true
           ./mc anonymous set download local/$S3_BUCKET || true
@@ -97,7 +102,7 @@ jobs:
         run: pnpm build
 
       - name: Start app (background)
-        run: pnpm start & sleep 8
+        run: pnpm start & npx --yes wait-on http://localhost:3000
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
@@ -106,4 +111,3 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
         run: pnpm test:e2e
-
