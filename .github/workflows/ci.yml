@@ -1,128 +1,82 @@
-# file: .github/workflows/ci.yml
 name: CI
 
 on:
   push:
+    branches: [main, develop]
   pull_request:
+    branches: [main, develop]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          version: 9 # or the version you use locally
+          version: 9
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    services:
-      postgres:
-        image: postgres:16
-        ports:
-          - "5432:5432"
+      - name: Setup Prisma
+        run: pnpm prisma generate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm tsc --noEmit
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
         env:
-          POSTGRES_DB: automk
-          POSTGRES_USER: automk
-          POSTGRES_PASSWORD: automk
-        options: >-
-          --health-cmd="pg_isready -U automk -d automk"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_URL: http://localhost:3000
 
-      minio:
-        image: bitnami/minio:latest
-        ports:
-          - "9000:9000"
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-          MINIO_DEFAULT_BUCKETS: automk-uploads
-        options: >-
-          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
-
-    env:
-      # Database
-      DATABASE_URL: postgresql://automk:automk@localhost:5432/automk
-      # S3/MinIO
-      S3_ENDPOINT: http://localhost:9000
-      S3_REGION: us-east-1
-      S3_ACCESS_KEY_ID: minioadmin
-      S3_SECRET_ACCESS_KEY: minioadmin
-      S3_BUCKET: automk-uploads
-      S3_PUBLIC_URL: http://localhost:9000
-      # App
-      NEXTAUTH_SECRET: testsecret
-      NEXTAUTH_URL: http://localhost:3000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NODE_ENV: test
-
+  e2e:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Enable pnpm via corepack
-        run: |
-          corepack enable
-          corepack prepare pnpm@9 --activate
-          pnpm -v
-
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Install deps
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma client & migrate
-        env:
-          PGPASSWORD: automk
-        run: |
-          pnpx prisma generate
-          pnpx prisma migrate deploy
-          psql -h localhost -U automk -d automk -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
-
-      - name: Make S3 bucket public (best-effort)
-        run: |
-          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
-          chmod +x mc
-          ./mc alias set local http://localhost:9000 minioadmin minioadmin
-          ./mc mb -p local/$S3_BUCKET || true
-          ./mc anonymous set download local/$S3_BUCKET || true
-
-      - name: Run unit tests (Vitest)
-        run: pnpm test --run
-
-      - name: Build Next
-        run: pnpm build
-
-      - name: Start app (background)
-        run: pnpm start & npx --yes wait-on http://localhost:3000
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      - name: Run e2e (Playwright)
-        env:
-          BASE_URL: http://localhost:3000
+      - name: Run E2E tests
         run: pnpm test:e2e
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_URL: http://localhost:3000
