@@ -2,22 +2,27 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+type ReactLeaflet = typeof import("react-leaflet");
+type MapContainerProps = ReactLeaflet["MapContainer"] extends ComponentType<infer P> ? P : never;
+type TileLayerProps = ReactLeaflet["TileLayer"] extends ComponentType<infer P> ? P : never;
+type MarkerProps = ReactLeaflet["Marker"] extends ComponentType<infer P> ? P : never;
+
 const MapContainer = dynamic(
-  () => import("react-leaflet").then((m) => m.MapContainer),
+  () => import("react-leaflet").then(({ MapContainer }) => ({ default: MapContainer })),
   { ssr: false },
-) as typeof import("react-leaflet").MapContainer;
+) as ComponentType<MapContainerProps>;
 const TileLayer = dynamic(
-  () => import("react-leaflet").then((m) => m.TileLayer),
+  () => import("react-leaflet").then(({ TileLayer }) => ({ default: TileLayer })),
   { ssr: false },
-) as typeof import("react-leaflet").TileLayer;
+) as ComponentType<TileLayerProps>;
 const Marker = dynamic(
-  () => import("react-leaflet").then((m) => m.Marker),
+  () => import("react-leaflet").then(({ Marker }) => ({ default: Marker })),
   { ssr: false },
-) as typeof import("react-leaflet").Marker;
+) as ComponentType<MarkerProps>;
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
@@ -45,4 +50,3 @@ export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
     </div>
   );
 }
-

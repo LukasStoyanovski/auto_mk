@@ -45,8 +45,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing file or listingId" }, { status: 400 });
   }
 
-  // Verify listing ownership & draft
-  // @ts-expect-error -- Prisma client types not updated in linter
   const listing = await prisma.listing.findFirst({
     where: { id: listingId, status: "DRAFT", seller: { email: session.user.email! } },
     select: { id: true }
@@ -78,8 +76,6 @@ export async function POST(req: Request) {
     })
   );
 
-  // Save Photo row
-  // @ts-expect-error -- Prisma client types not updated in linter
   const photo = await prisma.photo.create({
     data: {
       listingId,

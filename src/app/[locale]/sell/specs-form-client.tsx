@@ -52,7 +52,7 @@ export default function SpecsFormClient({
   };
 
   const form = useForm<SpecsValues, undefined, SpecsValues>({
-    resolver: zodResolver(SpecsSchema),
+    resolver: zodResolver<SpecsValues>(SpecsSchema),
     defaultValues,
   });
 
