@@ -1,18 +1,24 @@
 // file: src/app/[locale]/listing/[id]/page.tsx
 import { notFound } from "next/navigation";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 import { prisma } from "@/lib/db";
 import Price from "@/components/price";
 import type { Metadata } from "next";
 import { baseUrl } from "@/lib/url";
 import Image from "next/image";
 
-type Props = { params: { locale: Locale; id: string } };
+type Params = { locale: string; id: string };
+type Props = { params: Promise<Params> };
+
+function toLocale(locale: string): Locale {
+  return (locales as readonly string[]).includes(locale) ? (locale as Locale) : defaultLocale;
+}
 
 // --- SEO: dynamic metadata for this listing ---
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id, locale } = params;
-  const url = `${baseUrl()}/${locale}/listing/${id}`;
+  const { id, locale } = await params;
+  const activeLocale = toLocale(locale);
+  const url = `${baseUrl()}/${activeLocale}/listing/${id}`;
   const ogImg = `${url}/opengraph-image`;
 
   const data = await prisma.listing.findUnique({
@@ -41,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         siteName: "Auto.mk",
         images: [{ url: ogImg, width: 1200, height: 630 }],
         type: "article",
-        locale,
+        locale: activeLocale,
       },
       twitter: {
         card: "summary_large_image",
@@ -53,7 +59,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ListingDetail({ params }: Props) {
-  const { id, locale } = params;
+  const { id, locale } = await params;
+  const activeLocale = toLocale(locale);
 
   const data = await prisma.listing.findUnique({
     where: { id },
@@ -106,7 +113,7 @@ export default async function ListingDetail({ params }: Props) {
       price: data.priceEur || data.priceMkd,
       priceCurrency: data.priceEur ? "EUR" : "MKD",
       availability: data.status === "PUBLISHED" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
-      url: `${baseUrl()}/${locale}/listing/${data.id}`,
+      url: `${baseUrl()}/${activeLocale}/listing/${data.id}`,
     },
   };
 

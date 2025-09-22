@@ -1,8 +1,8 @@
 // file: src/app/[locale]/dealer/[slug]/page.tsx
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 export default async function DealerPage({ params }: Props) {
-  const { slug } = params;
+  const { slug } = await params;
   return (
     <div>
       <h2 className="text-2xl font-semibold">Dealer: {slug}</h2>

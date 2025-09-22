@@ -2,19 +2,22 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 // Import the client component for draft creation
 import StartDraftClient from "./start-draft-client";
 
 export default async function SellPage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
+  const activeLocale = (locales as readonly string[]).includes(locale)
+    ? (locale as Locale)
+    : defaultLocale;
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
-    redirect(`/signin?callbackUrl=/${locale}/sell`);
+    redirect(`/signin?callbackUrl=/${activeLocale}/sell`);
   }
 
   return (
@@ -23,7 +26,7 @@ export default async function SellPage({
       <p className="text-sm text-gray-600">
         Wizard steps (specs → photos → price → location → preview → submit) will appear here.
       </p>
-      <StartDraftClient locale={locale} />
+      <StartDraftClient locale={activeLocale} />
     </div>
   );
 }

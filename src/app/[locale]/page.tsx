@@ -1,15 +1,20 @@
 // file: src/app/[locale]/page.tsx
 import { getTranslations } from 'next-intl/server';
 import { prisma } from '@/lib/db';
-import { type Locale } from '@/i18n/config';
+import { defaultLocale, locales, type Locale } from '@/i18n/config';
+
+function toLocale(value: string): Locale {
+  return (locales as readonly string[]).includes(value) ? (value as Locale) : defaultLocale;
+}
 
 export default async function HomePage({
   params,
 }: {
-  params: { locale: Locale };
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params;
-  const t = await getTranslations({ locale });
+  const { locale } = await params;
+  const activeLocale = toLocale(locale);
+  const t = await getTranslations({ locale: activeLocale });
   const featureCount = await prisma.featureTag.count();
   const rate = (await prisma.adminSettings.findUnique({ where: { id: 1 } }))?.eurMkdRate?.toString();
 

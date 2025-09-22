@@ -1,17 +1,22 @@
 // file: src/app/[locale]/listing/[id]/opengraph-image.tsx
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 export const runtime = "nodejs"; // use Node so Prisma is OK
 export const alt = "Auto.mk listing";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-type Props = { params: { locale: Locale; id: string } };
+type Props = { params: Promise<{ locale: string; id: string }> };
+
+function toLocale(locale: string): Locale {
+  return (locales as readonly string[]).includes(locale) ? (locale as Locale) : defaultLocale;
+}
 
 export default async function OgImage({ params }: Props) {
-  const { id } = params;
+  const { id, locale } = await params;
+  const activeLocale = toLocale(locale);
 
   const data = await prisma.listing.findUnique({
     where: { id },
@@ -49,9 +54,10 @@ export default async function OgImage({ params }: Props) {
   }
 
   const img = data.photos[0]?.url;
+  const localeTag = activeLocale === "mk" ? "mk-MK" : activeLocale === "sq" ? "sq-AL" : "en-US";
   const price = data.priceEur
-    ? `€ ${data.priceEur.toLocaleString("mk-MK")}`
-    : `${(data.priceMkd ?? 0).toLocaleString("mk-MK")} MKD`;
+    ? `€ ${data.priceEur.toLocaleString(localeTag)}`
+    : `${(data.priceMkd ?? 0).toLocaleString(localeTag)} MKD`;
   const subtitle = [data.vehicle.year, data.vehicle.make, data.vehicle.model]
     .filter(Boolean)
     .join(" · ");
@@ -103,7 +109,7 @@ export default async function OgImage({ params }: Props) {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.15 }}>{data.title}</div>
             <div style={{ fontSize: 26, color: "#cbd5e1" }}>{subtitle}</div>
-            <div style={{ fontSize: 26, color: "#94a3b8" }}>{data.city ?? "—"}</div>
+          <div style={{ fontSize: 26, color: "#94a3b8" }}>{data.city ?? "—"}</div>
           </div>
 
           <div style={{ fontSize: 44, fontWeight: 900 }}>{price}</div>

@@ -2,12 +2,17 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import type { Locale } from "@/i18n/config";
+import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
-export default async function DealerImportPage({ params }: { params: { locale: Locale } }) {
-  const { locale } = params;
+function toLocale(locale: string): Locale {
+  return (locales as readonly string[]).includes(locale) ? (locale as Locale) : defaultLocale;
+}
+
+export default async function DealerImportPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const activeLocale = toLocale(locale);
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect(`/signin?callbackUrl=/${locale}/dealer/import`);
+  if (!session?.user) redirect(`/signin?callbackUrl=/${activeLocale}/dealer/import`);
 
   return (
     <div className="space-y-4">
