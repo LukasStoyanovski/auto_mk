@@ -1,9 +1,14 @@
 // file: src/components/listing-map.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import type {
+  MapContainerProps,
+  TileLayerProps,
+  MarkerProps,
+} from "react-leaflet";
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
@@ -48,7 +53,9 @@ export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
     return <div className="h-64 w-full overflow-hidden rounded border" />;
   }
 
-  const { MapContainer, TileLayer, Marker } = leaflet;
+  const MapContainer = leaflet.MapContainer as ComponentType<MapContainerProps>;
+  const TileLayer = leaflet.TileLayer as ComponentType<TileLayerProps>;
+  const Marker = leaflet.Marker as ComponentType<MarkerProps>;
 
   return (
     <div className="h-64 w-full overflow-hidden rounded border">
