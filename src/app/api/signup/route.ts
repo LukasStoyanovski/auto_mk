@@ -19,14 +19,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
     }
 
-    // @ts-expect-error -- Prisma client types not updated in linter
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     }
 
     const hash = await bcrypt.hash(password, 10);
-    // @ts-expect-error -- Prisma client types not updated in linter
     await prisma.user.create({
       data: { email, name: name || null, password: hash },
     });
