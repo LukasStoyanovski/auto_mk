@@ -54,7 +54,7 @@ jobs:
       # i18n (not strictly required)
       NODE_ENV: test
 
-    steps:
+        steps:
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -65,11 +65,14 @@ jobs:
           cache: "pnpm"
 
       - name: Enable pnpm via corepack
+        shell: bash
         run: |
           corepack enable
           corepack prepare pnpm@9 --activate
           pnpm -v
 
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Install deps
         run: pnpm install --frozen-lockfile
@@ -78,18 +81,14 @@ jobs:
         run: |
           pnpx prisma generate
           pnpx prisma migrate deploy
-          # enable pg_trgm for search step (non-fatal if already there)
           psql "$DATABASE_URL" -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
 
       - name: Create S3 bucket
         run: |
-          # simple wait for minio health
-          for i in {1..20}; do curl -sf http://localhost:9000/minio/health/live && break || sleep 1; done
-          # create bucket via mc (install tiny client)
           curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc && chmod +x mc
           ./mc alias set local http://localhost:9000 minioadmin minioadmin
           ./mc mb -p local/$S3_BUCKET || true
-          ./mc anonymous set download local/$S3_BUCKET
+          ./mc anonymous set download local/$S3_BUCKET || true
 
       - name: Run unit tests (Vitest)
         run: pnpm test --run
@@ -98,7 +97,7 @@ jobs:
         run: pnpm build
 
       - name: Start app (background)
-        run: pnpm start & sleep 5
+        run: pnpm start & sleep 8
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
@@ -107,3 +106,4 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
         run: pnpm test:e2e
+
