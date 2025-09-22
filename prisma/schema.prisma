@@ -1,0 +1,343 @@
+// file: prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DEALER
+  USER
+}
+
+enum ListingStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  REJECTED
+  SOLD
+  ARCHIVED
+}
+
+enum ServiceHistory {
+  NONE
+  PARTIAL
+  FULL
+}
+
+enum VehicleCategory {
+  CAR
+  MOTORCYCLE
+  VAN
+  TRUCK
+  BUS
+  AGRI
+  CONSTRUCTION
+  OTHER
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  PHEV
+  EV
+  LPG
+  CNG
+}
+
+enum Transmission {
+  MANUAL
+  AUTO
+}
+
+enum Drivetrain {
+  FWD
+  RWD
+  AWD
+  FOURX4
+}
+
+enum EuroStandard {
+  E3
+  E4
+  E5
+  E6
+  E6d
+  NA
+}
+
+enum VehicleCondition {
+  NEW
+  USED
+  DAMAGED
+}
+
+enum ReportReason {
+  SPAM
+  SCAM
+  INAPPROPRIATE
+  DUPLICATE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  // Relations
+  listings   Listing[]   @relation("ListingSeller")
+  favorites  Favorite[]
+  dealership Dealership?
+  leads      Lead[]      @relation("LeadUser")
+
+  // NEW: opposite side of Report.reporter
+  reportsAuthored Report[] @relation("ReportsByUser")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- Marketplace ---
+
+model Dealership {
+  id           String  @id @default(cuid())
+  name         String
+  slug         String  @unique
+  description  String?
+  phone        String?
+  website      String?
+  city         String?
+  municipality String?
+  address      String?
+  lat          Float?
+  lng          Float?
+
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  listings Listing[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id                   String           @id @default(cuid())
+  category             VehicleCategory
+  make                 String
+  model                String
+  trim                 String?
+  generation           String?
+  year                 Int
+  bodyType             String?
+  doors                Int?
+  seats                Int?
+  mileageKm            Int
+  fuel                 FuelType
+  transmission         Transmission
+  drivetrain           Drivetrain?
+  engineDisplacementCc Int?
+  powerKw              Int?
+  torqueNm             Int?
+  color                String?
+  interiorColor        String?
+  euroStandard         EuroStandard
+  co2Gkm               Int?
+  owners               Int?
+  condition            VehicleCondition
+
+  listing Listing?
+
+  @@index([make])
+  @@index([model])
+  @@index([year])
+}
+
+model Listing {
+  id     String        @id @default(cuid())
+  title  String
+  status ListingStatus @default(DRAFT)
+
+  sellerId String
+  seller   User   @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  dealershipId String?
+  dealership   Dealership? @relation(fields: [dealershipId], references: [id], onDelete: SetNull)
+
+  vehicleId String  @unique
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  priceMkd       Int
+  priceEur       Int
+  priceIsNet     Boolean @default(false)
+  vatReclaimable Boolean @default(false)
+  negotiable     Boolean @default(true)
+
+  city              String
+  municipality      String?
+  lat               Float?
+  lng               Float?
+  showExactLocation Boolean @default(false)
+
+  accidentFree           Boolean        @default(true)
+  serviceHistory         ServiceHistory @default(NONE)
+  warrantyMonths         Int?
+  firstRegistration      DateTime?
+  registrationValidUntil DateTime?
+  vin                    String?
+  plateNumber            String?
+
+  viewsCount     Int @default(0)
+  favoritesCount Int @default(0)
+
+  photos    Photo[]
+  features  ListingFeature[]
+  leads     Lead[]
+  favorites Favorite[]
+  reports   Report[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([city])
+  @@index([priceMkd])
+  @@index([priceEur])
+  @@index([createdAt])
+}
+
+model Photo {
+  id         String  @id @default(cuid())
+  listingId  String
+  listing    Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  key        String  // S3 object key
+  url        String
+  width      Int?
+  height     Int?
+  sortOrder  Int      @default(0)
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())  // <— NEW
+
+  @@index([listingId])
+}
+
+model FeatureTag {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String @unique
+
+  listings ListingFeature[]
+}
+
+model ListingFeature {
+  id           String @id @default(cuid())
+  listingId    String
+  featureTagId String
+
+  listing    Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  featureTag FeatureTag @relation(fields: [featureTagId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, featureTagId])
+  @@index([featureTagId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  listingId String
+  name      String
+  email     String?
+  phone     String?
+  message   String?
+  createdAt DateTime @default(now())
+  userId    String? // optional if logged in
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User?   @relation("LeadUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([listingId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  listingId  String
+  reason     ReportReason
+  details    String?
+  reporterId String?
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // Named relation matches User.reportsAuthored
+  reporter User? @relation("ReportsByUser", fields: [reporterId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([reason])
+  @@index([listingId])
+}
+
+model AdminSettings {
+  id                       Int     @id @default(1)
+  eurMkdRate               Decimal @db.Decimal(10, 4)
+  maxPrivateActiveListings Int     @default(5)
+  moderationRequired       Boolean @default(true)
+
+  @@unique([id])
+}

@@ -1,0 +1,4 @@
+make,model,year,priceMkd,city,mileageKm,fuel,transmission
+BMW,320d,2018,900000,Skopje,145000,DIESEL,AUTO
+Volkswagen,Golf,2015,420000,Bitola,180000,PETROL,MANUAL
+Invalid,Row,not-a-year,abc,Skopje,foo,PETROL,MANUAL
