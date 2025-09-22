@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   }
 
   // Verify listing ownership & draft
-  // @ts-ignore - Prisma client types not updated in linter
+  // @ts-expect-error -- Prisma client types not updated in linter
   const listing = await prisma.listing.findFirst({
     where: { id: listingId, status: "DRAFT", seller: { email: session.user.email! } },
     select: { id: true }
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
   );
 
   // Save Photo row
-  // @ts-ignore - Prisma client types not updated in linter
+  // @ts-expect-error -- Prisma client types not updated in linter
   const photo = await prisma.photo.create({
     data: {
       listingId,

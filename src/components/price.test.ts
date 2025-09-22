@@ -1,5 +1,4 @@
 // file: src/components/price.test.ts
-/// <reference types="vitest" />
 import { describe, it, expect } from "vitest";
 import { formatMkd, formatEur } from "./price";
 

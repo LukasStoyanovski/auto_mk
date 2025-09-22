@@ -6,10 +6,18 @@ import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Lazy import react-leaflet components client-side only
-const MapContainer = dynamic(() => import("react-leaflet").then(m => m.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then(m => m.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then(m => m.Marker), { ssr: false });
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false },
+) as typeof import("react-leaflet").MapContainer;
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((m) => m.TileLayer),
+  { ssr: false },
+) as typeof import("react-leaflet").TileLayer;
+const Marker = dynamic(
+  () => import("react-leaflet").then((m) => m.Marker),
+  { ssr: false },
+) as typeof import("react-leaflet").Marker;
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
@@ -19,7 +27,7 @@ const defaultIcon = new L.Icon({
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
-L.Marker.prototype.options.icon = defaultIcon as any;
+L.Marker.prototype.options.icon = defaultIcon;
 
 export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
   const [center, setCenter] = useState<[number, number]>([lat, lng]);
@@ -30,14 +38,11 @@ export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
 
   return (
     <div className="h-64 w-full overflow-hidden rounded border">
-      {(MapContainer as any)({ center, zoom: 12, style: { height: "100%", width: "100%" }, children: (
-        <>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={center} />
-        </>
-      ) })}
+      <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <Marker position={center} />
+      </MapContainer>
     </div>
   );
 }
-
 
