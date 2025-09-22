@@ -51,8 +51,8 @@ export default function SpecsFormClient({
     condition: "USED",
   };
 
-  const form = useForm<SpecsValues, undefined, SpecsValues>({
-    resolver: zodResolver<SpecsValues>(SpecsSchema),
+  const form = useForm<SpecsValues>({
+    resolver: zodResolver(SpecsSchema),
     defaultValues,
   });
 
