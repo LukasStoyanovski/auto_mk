@@ -69,9 +69,18 @@ export default function SearchClient({ locale }: { locale: string }) {
   function updateUrl(next: Partial<{ q: string; city: string; min: string; max: string; page: number }>) {
     const p = new URLSearchParams(sp.toString());
     if (next.q !== undefined) p.set("q", next.q);
-    if (next.city !== undefined) next.city ? p.set("city", next.city) : p.delete("city");
-    if (next.min !== undefined) next.min ? p.set("minPriceMkd", next.min) : p.delete("minPriceMkd");
-    if (next.max !== undefined) next.max ? p.set("maxPriceMkd", next.max) : p.delete("maxPriceMkd");
+    if (next.city !== undefined) {
+      if (next.city) p.set("city", next.city);
+      else p.delete("city");
+    }
+    if (next.min !== undefined) {
+      if (next.min) p.set("minPriceMkd", next.min);
+      else p.delete("minPriceMkd");
+    }
+    if (next.max !== undefined) {
+      if (next.max) p.set("maxPriceMkd", next.max);
+      else p.delete("maxPriceMkd");
+    }
     if (next.page !== undefined) p.set("page", String(next.page));
     router.replace(`${pathname}?${p.toString()}`, { scroll: false });
   }

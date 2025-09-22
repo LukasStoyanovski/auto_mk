@@ -10,9 +10,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale });
-  // @ts-ignore - Prisma client types not updated in linter
   const featureCount = await prisma.featureTag.count();
-  // @ts-ignore - Prisma client types not updated in linter
   const rate = (await prisma.adminSettings.findUnique({ where: { id: 1 } }))?.eurMkdRate?.toString();
 
   return (

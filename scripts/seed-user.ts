@@ -5,7 +5,6 @@ const prisma: PrismaClient = new PrismaClient();
 
 async function main() {
   // Admin settings (singleton)
-  // @ts-ignore - Prisma client types not updated in linter
   await prisma.adminSettings.upsert({
     where: { id: 1 },
     update: { eurMkdRate: '61.5000' },
@@ -41,7 +40,6 @@ async function main() {
   ];
 
   for (const [slug, name] of tags) {
-    // @ts-ignore - Prisma client types not updated in linter
     await prisma.featureTag.upsert({
       where: { slug },
       update: { name },

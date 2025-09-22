@@ -6,6 +6,7 @@ import Price from "@/components/price";
 import ListingMap from "@/components/listing-map";
 import type { Metadata } from "next";
 import { baseUrl } from "@/lib/url";
+import Image from "next/image";
 
 type Props = { params: Promise<{ locale: Locale; id: string }> };
 
@@ -26,8 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   });
   if (!data) return {};
-
-  const img = data.photos[0]?.url;
   const desc = [data.title, data.city, data.priceEur ? `€ ${data.priceEur.toLocaleString()}` : `${data.priceMkd.toLocaleString()} MKD`]
     .filter(Boolean)
     .join(" • ");
@@ -130,7 +129,7 @@ export default async function ListingDetail({ params }: Props) {
       <div className="grid gap-3 md:grid-cols-[2fr,1fr]">
         <div className="rounded border bg-white overflow-hidden">
           {data.photos.length ? (
-            <img src={data.photos[0].url} alt="" className="w-full aspect-[4/3] object-cover" />
+            <Image src={data.photos[0].url} alt="" width={800} height={600} className="w-full aspect-[4/3] object-cover" />
           ) : (
             <div className="w-full aspect-[4/3] grid place-items-center text-gray-400">No photo</div>
           )}
@@ -138,7 +137,7 @@ export default async function ListingDetail({ params }: Props) {
         {data.photos.length > 1 && (
           <div className="grid grid-cols-3 gap-2">
             {data.photos.slice(1, 7).map((p) => (
-              <img key={p.id} src={p.url} alt="" className="rounded border aspect-[4/3] object-cover bg-gray-100" />
+              <Image key={p.id} src={p.url} alt="" width={200} height={150} className="rounded border aspect-[4/3] object-cover bg-gray-100" />
             ))}
           </div>
         )}

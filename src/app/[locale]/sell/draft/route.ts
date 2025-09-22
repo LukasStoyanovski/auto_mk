@@ -18,7 +18,6 @@ export async function POST() {
   }
 
   // Create minimal Vehicle and Listing in DRAFT
-  // @ts-ignore - Prisma client types not updated in linter
   const vehicle = await prisma.vehicle.create({
     data: {
       category: "CAR",
@@ -33,7 +32,6 @@ export async function POST() {
     },
   });
 
-  // @ts-ignore - Prisma client types not updated in linter
   const listing = await prisma.listing.create({
     data: {
       title: "Draft listing",

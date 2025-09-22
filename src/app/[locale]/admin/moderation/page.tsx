@@ -16,7 +16,7 @@ async function getItems() {
     },
   });
   if (!res.ok) return { items: [] };
-  return res.json() as Promise<{ items: Array<any> }>;
+  return res.json() as Promise<{ items: Array<{ id: string; title: string; city: string; createdAt: string; vehicle: { make: string; model: string; year: number }; seller: { email: string; name: string | null } }> }>;
 }
 
 export default async function ModerationPage() {

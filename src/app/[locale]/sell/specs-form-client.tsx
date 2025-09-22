@@ -32,7 +32,6 @@ type SpecsValues = z.infer<typeof SpecsSchema>;
 
 export default function SpecsFormClient({
   listingId,
-  locale,
 }: {
   listingId: string;
   locale: string;

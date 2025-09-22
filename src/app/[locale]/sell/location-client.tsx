@@ -1,7 +1,7 @@
 // file: src/app/[locale]/sell/location-client.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useMapEvents as useMapEventsHook } from "react-leaflet";
 
@@ -21,7 +21,7 @@ const defaultIcon = new L.Icon({
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
-L.Marker.prototype.options.icon = defaultIcon as any;
+L.Marker.prototype.options.icon = defaultIcon;
 
 type Props = { listingId: string };
 
@@ -73,8 +73,7 @@ export default function LocationClient({ listingId }: Props) {
 
   function MapClicker() {
     useMapEventsHook({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      click(e: any) {
+      click(e: { latlng: { lat: number; lng: number } }) {
         setPos([e.latlng.lat, e.latlng.lng]);
       },
     });
@@ -127,14 +126,12 @@ export default function LocationClient({ listingId }: Props) {
       </div>
 
       <div className="h-72 w-full overflow-hidden rounded border">
-        {(MapContainer as any)({ center: pos, zoom: 11, style: { height: "100%", width: "100%" }, children: (
-          <>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {/* @ts-ignore */}
-            <MapClicker />
-            <Marker position={pos} />
-          </>
-        ) })}
+        {/* @ts-expect-error - MapContainer type issues with dynamic import */}
+        <MapContainer center={pos} zoom={11} style={{ height: "100%", width: "100%" }}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapClicker />
+          <Marker position={pos} />
+        </MapContainer>
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
