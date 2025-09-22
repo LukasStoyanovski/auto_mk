@@ -2,24 +2,27 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState, type ComponentType } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import type { Map as LeafletMap } from "leaflet";
 import type {
   MapContainerProps,
   TileLayerProps,
   MarkerProps,
 } from "react-leaflet";
 
-const MapContainer = dynamic<MapContainerProps>(
+const MapContainer = dynamic(
   () =>
-    import("react-leaflet").then(({ MapContainer: LeafletMapContainer }) =>
-      function WrappedMapContainer(props: MapContainerProps) {
-        return <LeafletMapContainer {...props} />;
-      },
-    ),
+    import("react-leaflet").then(({ MapContainer: LeafletMapContainer }) => {
+      const Wrapped = forwardRef<LeafletMap, MapContainerProps>((props, ref) => (
+        <LeafletMapContainer {...props} ref={ref} />
+      ));
+      Wrapped.displayName = "DynamicMapContainer";
+      return Wrapped;
+    }),
   { ssr: false },
-);
+) as ComponentType<MapContainerProps>;
 
 const TileLayer = dynamic<TileLayerProps>(
   () =>
