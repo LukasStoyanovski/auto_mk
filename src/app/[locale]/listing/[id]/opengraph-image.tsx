@@ -8,10 +8,10 @@ export const alt = "Auto.mk listing";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-type Props = { params: Promise<{ locale: Locale; id: string }> };
+type Props = { params: { locale: Locale; id: string } };
 
 export default async function OgImage({ params }: Props) {
-  const { id } = await params;
+  const { id } = params;
 
   const data = await prisma.listing.findUnique({
     where: { id },

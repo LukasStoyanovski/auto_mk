@@ -4,11 +4,11 @@ import { prisma } from '@/lib/db';
 import { type Locale } from '@/i18n/config';
 
 export default async function HomePage({
-  params
+  params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const t = await getTranslations({ locale });
   const featureCount = await prisma.featureTag.count();
   const rate = (await prisma.adminSettings.findUnique({ where: { id: 1 } }))?.eurMkdRate?.toString();

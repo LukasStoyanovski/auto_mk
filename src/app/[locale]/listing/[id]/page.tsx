@@ -7,11 +7,11 @@ import type { Metadata } from "next";
 import { baseUrl } from "@/lib/url";
 import Image from "next/image";
 
-type Props = { params: Promise<{ locale: Locale; id: string }> };
+type Props = { params: { locale: Locale; id: string } };
 
 // --- SEO: dynamic metadata for this listing ---
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id, locale } = await params;
+  const { id, locale } = params;
   const url = `${baseUrl()}/${locale}/listing/${id}`;
   const ogImg = `${url}/opengraph-image`;
 
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ListingDetail({ params }: Props) {
-  const { id, locale } = await params;
+  const { id, locale } = params;
 
   const data = await prisma.listing.findUnique({
     where: { id },

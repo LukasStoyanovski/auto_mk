@@ -9,9 +9,9 @@ import StartDraftClient from "./start-draft-client";
 export default async function SellPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect(`/signin?callbackUrl=/${locale}/sell`);

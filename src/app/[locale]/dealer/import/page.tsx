@@ -4,8 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 
-export default async function DealerImportPage({ params }: { params: Promise<{ locale: Locale }> }) {
-  const { locale } = await params;
+export default async function DealerImportPage({ params }: { params: { locale: Locale } }) {
+  const { locale } = params;
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect(`/signin?callbackUrl=/${locale}/dealer/import`);
 
