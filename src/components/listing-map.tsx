@@ -5,24 +5,23 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import type {
-  MapContainerProps,
-  TileLayerProps,
-  MarkerProps,
-} from "react-leaflet";
 
-const MapContainer = dynamic<MapContainerProps>(
+type MapContainerComponent = typeof import("react-leaflet")['MapContainer'];
+type TileLayerComponent = typeof import("react-leaflet")['TileLayer'];
+type MarkerComponent = typeof import("react-leaflet")['Marker'];
+
+const MapContainer = dynamic(
   () => import("react-leaflet").then(({ MapContainer }) => MapContainer),
   { ssr: false },
-);
-const TileLayer = dynamic<TileLayerProps>(
+) as unknown as MapContainerComponent;
+const TileLayer = dynamic(
   () => import("react-leaflet").then(({ TileLayer }) => TileLayer),
   { ssr: false },
-);
-const Marker = dynamic<MarkerProps>(
+) as unknown as TileLayerComponent;
+const Marker = dynamic(
   () => import("react-leaflet").then(({ Marker }) => Marker),
   { ssr: false },
-);
+) as unknown as MarkerComponent;
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
