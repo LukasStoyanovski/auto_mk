@@ -1,7 +1,7 @@
 // file: src/app/[locale]/sell/specs-form-client.tsx
 "use client";
 
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -51,8 +51,10 @@ export default function SpecsFormClient({
     condition: "USED",
   };
 
+  const resolver = zodResolver(SpecsSchema) as Resolver<SpecsValues>;
+
   const form = useForm<SpecsValues>({
-    resolver: zodResolver(SpecsSchema),
+    resolver,
     defaultValues,
   });
 
