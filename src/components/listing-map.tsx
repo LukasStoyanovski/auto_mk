@@ -1,7 +1,7 @@
 // file: src/components/listing-map.tsx
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { createElement, useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import type {
@@ -53,16 +53,28 @@ export default function ListingMap({ lat, lng }: { lat: number; lng: number }) {
     return <div className="h-64 w-full overflow-hidden rounded border" />;
   }
 
-  const MapContainer = leaflet.MapContainer as ComponentType<MapContainerProps>;
-  const TileLayer = leaflet.TileLayer as ComponentType<TileLayerProps>;
-  const Marker = leaflet.Marker as ComponentType<MarkerProps>;
+  const MapContainer = leaflet.MapContainer;
+  const TileLayer = leaflet.TileLayer;
+  const Marker = leaflet.Marker;
 
   return (
     <div className="h-64 w-full overflow-hidden rounded border">
-      <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Marker position={center} />
-      </MapContainer>
+      {createElement(
+        MapContainer,
+        {
+          center,
+          zoom: 12,
+          style: { height: "100%", width: "100%" },
+        } satisfies MapContainerProps,
+        <>
+          {createElement(TileLayer, {
+            url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          } satisfies TileLayerProps)}
+          {createElement(Marker, {
+            position: center,
+          } satisfies MarkerProps)}
+        </>,
+      )}
     </div>
   );
 }
