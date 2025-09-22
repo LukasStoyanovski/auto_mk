@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { prisma } from "@/lib/db";
 import Price from "@/components/price";
-import ListingMap from "@/components/listing-map";
 import type { Metadata } from "next";
 import { baseUrl } from "@/lib/url";
 import Image from "next/image";
@@ -172,7 +171,9 @@ export default async function ListingDetail({ params }: Props) {
           <div className="text-sm text-gray-600 mb-2">
             {data.city}{data.municipality ? `, ${data.municipality}` : ""}
           </div>
-          <ListingMap lat={data.lat} lng={data.lng} />
+          <div className="h-64 w-full overflow-hidden rounded border bg-gray-100 grid place-items-center text-gray-500">
+            Map preview temporarily unavailable
+          </div>
         </div>
       )}
 
