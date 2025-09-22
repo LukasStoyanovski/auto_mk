@@ -5,23 +5,41 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import type {
+  MapContainerProps,
+  TileLayerProps,
+  MarkerProps,
+} from "react-leaflet";
 
-type MapContainerComponent = typeof import("react-leaflet")['MapContainer'];
-type TileLayerComponent = typeof import("react-leaflet")['TileLayer'];
-type MarkerComponent = typeof import("react-leaflet")['Marker'];
+const MapContainer = dynamic<MapContainerProps>(
+  () =>
+    import("react-leaflet").then(({ MapContainer: LeafletMapContainer }) =>
+      function WrappedMapContainer(props: MapContainerProps) {
+        return <LeafletMapContainer {...props} />;
+      },
+    ),
+  { ssr: false },
+);
 
-const MapContainer = dynamic(
-  () => import("react-leaflet").then(({ MapContainer }) => MapContainer),
+const TileLayer = dynamic<TileLayerProps>(
+  () =>
+    import("react-leaflet").then(({ TileLayer: LeafletTileLayer }) =>
+      function WrappedTileLayer(props: TileLayerProps) {
+        return <LeafletTileLayer {...props} />;
+      },
+    ),
   { ssr: false },
-) as unknown as MapContainerComponent;
-const TileLayer = dynamic(
-  () => import("react-leaflet").then(({ TileLayer }) => TileLayer),
+);
+
+const Marker = dynamic<MarkerProps>(
+  () =>
+    import("react-leaflet").then(({ Marker: LeafletMarker }) =>
+      function WrappedMarker(props: MarkerProps) {
+        return <LeafletMarker {...props} />;
+      },
+    ),
   { ssr: false },
-) as unknown as TileLayerComponent;
-const Marker = dynamic(
-  () => import("react-leaflet").then(({ Marker }) => Marker),
-  { ssr: false },
-) as unknown as MarkerComponent;
+);
 
 // Default marker icons (avoid broken images)
 const defaultIcon = new L.Icon({
