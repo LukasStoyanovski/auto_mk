@@ -9,8 +9,8 @@ type Filters = {
   transmission?: string;
   minPriceMkd?: number;
   maxPriceMkd?: number;
-  page?: number;
-  take?: number;
+  page: number;
+  take: number;
 };
 
 export async function GET(req: Request) {
@@ -30,13 +30,13 @@ export async function GET(req: Request) {
     take: Math.min(50, Math.max(1, Number(searchParams.get("take") || 12))),
   };
 
-  const offset = (filters.page! - 1) * filters.take!;
+  const offset = (filters.page - 1) * filters.take;
   const q = (filters.q || "").trim();
   const hasQ = q.length > 0;
 
   // dynamic WHERE pieces (safe parameterized)
   const where: string[] = [];
-  const params: any[] = [];
+  const params: Array<string | number> = [];
 
   // Status: allow DRAFT for now so you can see your new items; later: ['PUBLISHED']
   const includeDraft = searchParams.get("includeDraft") === "1";
@@ -131,8 +131,30 @@ export async function GET(req: Request) {
   `;
 
   try {
-    const rows = await prisma.$queryRawUnsafe(sql, ...params, filters.take, offset);
-    const [{ count }] = (await prisma.$queryRawUnsafe(countSql, ...params)) as any[];
+    type SearchRow = {
+      id: string;
+      title: string | null;
+      priceMkd: number | null;
+      priceEur: number | null;
+      city: string | null;
+      rank: number | null;
+      sim: number | null;
+      make: string | null;
+      model: string | null;
+      year: number | null;
+      primaryPhotoUrl: string | null;
+    };
+
+    const rows = await prisma.$queryRawUnsafe<SearchRow[]>(
+      sql,
+      ...params,
+      filters.take,
+      offset,
+    );
+    const [{ count }] = await prisma.$queryRawUnsafe<{ count: number }[]>(
+      countSql,
+      ...params,
+    );
     return NextResponse.json({
       ok: true,
       page: filters.page,

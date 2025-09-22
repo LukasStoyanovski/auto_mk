@@ -2,11 +2,26 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth-helpers";
 
+type ModerationItem = {
+  id: string;
+  title: string | null;
+  city: string | null;
+  vehicle: {
+    year: number | null;
+    make: string | null;
+    model: string | null;
+  };
+  seller: {
+    name: string | null;
+    email: string | null;
+  };
+};
+
 async function getItems() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/admin/listings/review`, { cache: "no-store" });
   // In dev, fallback to local fetch
-  if (!res.ok) return { items: [] };
-  return res.json() as Promise<{ items: Array<any> }>;
+  if (!res.ok) return { items: [] as ModerationItem[] };
+  return res.json() as Promise<{ items: ModerationItem[] }>;
 }
 
 export default async function ModerationPage() {

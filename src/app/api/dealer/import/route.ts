@@ -27,7 +27,7 @@ function toInt(input: unknown): number | undefined {
 }
 
 // Case-insensitive enums + common aliases
-function normFuel(v: any): string | undefined {
+function normFuel(v: unknown): string | undefined {
   if (!v) return undefined;
   const s = String(v).trim().toUpperCase();
   const map: Record<string, string> = {
@@ -39,7 +39,7 @@ function normFuel(v: any): string | undefined {
   return map[s] || s;
 }
 
-function normTrans(v: any): string | undefined {
+function normTrans(v: unknown): string | undefined {
   if (!v) return undefined;
   const s = String(v).trim().toUpperCase();
   const map: Record<string, string> = {
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
   try {
     const csv = Buffer.from(await file.arrayBuffer()).toString("utf8");
-    const rows: any[] = parse(csv, {
+    const rows = parse<Record<string, string | undefined>>(csv, {
       delimiter: [",", ";", "\t"],
       bom: true,
       columns: true,

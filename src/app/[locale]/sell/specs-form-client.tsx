@@ -39,20 +39,21 @@ export default function SpecsFormClient({
   const [serverMsg, setServerMsg] = useState<string | null>(null);
   const [serverErr, setServerErr] = useState<string | null>(null);
 
+  const defaultValues: SpecsValues = {
+    listingId,
+    make: "",
+    model: "",
+    year: new Date().getFullYear(),
+    mileageKm: 0,
+    category: "CAR",
+    fuel: "PETROL",
+    transmission: "MANUAL",
+    condition: "USED",
+  };
+
   const form = useForm<SpecsValues>({
-    // Cast keeps RHF & resolvers perfectly happy across minor version drifts
-    resolver: zodResolver(SpecsSchema) as any,
-    defaultValues: {
-      listingId,
-      make: "",
-      model: "",
-      year: new Date().getFullYear(),
-      mileageKm: 0,
-      category: "CAR",
-      fuel: "PETROL",
-      transmission: "MANUAL",
-      condition: "USED",
-    } as SpecsValues,
+    resolver: zodResolver(SpecsSchema),
+    defaultValues,
   });
 
   const onSubmit: SubmitHandler<SpecsValues> = async (values) => {

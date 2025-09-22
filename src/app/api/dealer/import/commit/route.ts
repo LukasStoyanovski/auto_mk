@@ -51,7 +51,7 @@ export async function POST(req: Request) {
   if (!file) return NextResponse.json({ error: "Missing file" }, { status: 400 });
 
   const csv = Buffer.from(await file.arrayBuffer()).toString("utf8");
-  const rows: Record<string, string>[] = parse(csv, {
+  const rows = parse<Record<string, string | undefined>>(csv, {
     delimiter: [",",";","\t"],
     bom: true,
     columns: true,
@@ -100,8 +100,8 @@ export async function POST(req: Request) {
           model: d.model,
           year: d.year,
           mileageKm: d.mileageKm,
-          fuel: d.fuel as "PETROL" | "DIESEL" | "HYBRID" | "PHEV" | "EV" | "LPG" | "CNG",
-          transmission: d.transmission as "MANUAL" | "AUTO",
+          fuel: d.fuel,
+          transmission: d.transmission,
           euroStandard: "NA",
           condition: "USED",
         },
@@ -129,11 +129,14 @@ export async function POST(req: Request) {
       });
 
       report.push({ ok: true, rowNumber: i + 2, listingId: listing.id });
-    } catch (e: any) {
+    } catch (e: unknown) {
       report.push({
         ok: false,
         rowNumber: i + 2,
-        errors: ["DB error: " + (e?.message || "unknown")],
+        errors: [
+          "DB error: " +
+            (e instanceof Error ? e.message : typeof e === "string" ? e : "unknown"),
+        ],
       });
     }
   }
